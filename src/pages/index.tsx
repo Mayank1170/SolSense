@@ -172,7 +172,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-900 p-6 scroll-smooth">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-white mb-6">
           Transaction History
@@ -186,21 +186,24 @@ const Home = () => {
           <div className="space-y-4">
             {transactions.map((transaction, index) => (
               <div
-                key={index}
-                className="bg-gray-800/50 rounded-lg shadow-lg overflow-hidden"
-              >
+              key={index}
+              className="bg-gray-800/50 border border-gray-700 hover:border-gray-400 rounded-lg shadow-lg overflow-hidden transition-all duration-300"
+            >            
                 <div className="p-4 border-b border-gray-700">
                   <div className="flex justify-between items-center">
                     <div className="flex flex-col gap-3">
                       <span className="w-fit px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm">
-                        {transaction.type}
+                        {transaction.type === "UNKNOWN"
+                          ? "General Transfer"
+                          : transaction.type.replace(/_/g, " ")}
                       </span>
+
                       <div className="flex gap-2">
                         {transaction.source !== "UNKNOWN" && (
                           <span className="text-xs text-white">
                             {transaction.source === "SYSTEM_PROGRAM"
                               ? "System Program"
-                              : transaction.source}
+                              : transaction.source.replace(/_/g, " ")}
                           </span>
                         )}
                         <div className="flex flex-row items-center">
