@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchTransactions } from "../components/fetch";
 import { fetchAssetDetails } from "../services/helius";
+import { Clock, ArrowUpRight, ArrowDownLeft, Copy } from "lucide-react";
 
 interface TokenTransfer {
   source: string;
@@ -10,6 +11,7 @@ interface TokenTransfer {
   fromUserAccount?: string;
   toUserAccount?: string;
 }
+
 interface Transaction {
   description: string;
   type: string;
@@ -17,18 +19,23 @@ interface Transaction {
   destination: string;
   tokenAmount: number;
   tokenTransfers?: TokenTransfer[];
+  signature: string;
+  timestamp?: number;
 }
+
 interface TokenMetadata {
   image: string;
   name: string;
 }
-const WALLET_ADDRESS = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
 
+const WALLET_ADDRESS = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
 const TRACKED_USER = `${WALLET_ADDRESS}`;
 const FILTERED_TYPES = ["TOKEN_MINT", "SWAP", "UNKNOWN"];
+
 const Home = () => {
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [copiedSignature, setCopiedSignature] = useState<string | null>(null);
   const [tokenMetadata, setTokenMetadata] = useState<{
     [mint: string]: TokenMetadata;
   }>({});
@@ -78,49 +85,74 @@ const Home = () => {
     }
   }, [transactions]);
 
+  const formatDate = (timestamp: number) =>
+    new Date(timestamp * 1000).toLocaleString();
+
+  const truncateAddress = (address: string) =>
+    `${address.slice(0, 4)}...${address.slice(-4)}`;
+
+  const handleCopySignature = (signature: string) => {
+    navigator.clipboard
+      .writeText(signature)
+      .then(() => {
+        setCopiedSignature(signature); // Set copied state to the current signature
+        setTimeout(() => setCopiedSignature(null), 3000); // Reset after 3 seconds
+      })
+      .catch((err) => console.error("Failed to copy signature:", err));
+  };
+
   const renderTransfer = (
     transfer: TokenTransfer,
     i: number,
-    transactionType: string
+    transaction: Transaction
   ) => {
     const metadata = tokenMetadata[transfer.mint];
+    const isSender = transfer.fromUserAccount === TRACKED_USER;
+    const isReceiver = transfer.toUserAccount === TRACKED_USER;
+
     return (
-      <li className="bg-gray-900 m-5 p-3" key={i}>
-        <p>Mint: {transfer.mint}</p>
-        <p>From: {transfer.fromUserAccount}</p>
-        <p>To: {transfer.toUserAccount}</p>
-        <div className="flex">
-          <p
-            className={
-              transfer.fromUserAccount === TRACKED_USER
-                ? "text-red-500 flex flex-row gap-3"
-                : transfer.toUserAccount === TRACKED_USER
-                ? "text-green-500  flex flex-row gap-3"
-                : ""
-            }
-          >
-            Amount:{" "}
-            <span className="flex flex-row gap-1">
-              {transfer.fromUserAccount === TRACKED_USER ? <p>-</p> : <p>+</p>}
-              {transfer.tokenAmount}
-            </span>
-          </p>
-        </div>
-        {metadata ? (
-          <div>
-            <p>Token Name: {metadata.name}</p>
-            {metadata.image && (
+      <div className="bg-gray-800 rounded-lg shadow-lg p-4 mb-4" key={i}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            {metadata?.image && (
               <img
                 src={metadata.image}
                 alt={metadata.name}
-                style={{ width: "50px" }}
+                className="w-8 h-8 rounded-full"
               />
             )}
+            <span className="font-semibold text-gray-200">
+              {metadata?.name || "Unknown Token"}
+            </span>
           </div>
-        ) : (
-          <p>Loading token metadata...</p>
-        )}
-      </li>
+          <div
+            className={`flex items-center px-3 py-1 rounded-full ${
+              isSender
+                ? "bg-red-500/10 text-red-500"
+                : "bg-green-500/10 text-green-500"
+            }`}
+          >
+            {isSender ? (
+              <ArrowUpRight className="w-4 h-4 mr-1" />
+            ) : (
+              <ArrowDownLeft className="w-4 h-4 mr-1" />
+            )}
+            {transfer.tokenAmount}
+          </div>
+        </div>
+
+        <div className="space-y-2 text-sm">
+          {isSender ? (
+            <p className="text-gray-300">
+              Sent to: {truncateAddress(transfer.toUserAccount || "")}
+            </p>
+          ) : (
+            <p className="text-gray-300">
+              Received from: {truncateAddress(transfer.fromUserAccount || "")}
+            </p>
+          )}
+        </div>
+      </div>
     );
   };
 
@@ -132,46 +164,86 @@ const Home = () => {
             transfer.fromUserAccount === TRACKED_USER ||
             transfer.toUserAccount === TRACKED_USER
         )
-        .map((transfer, i) => renderTransfer(transfer, i, transaction.type));
+        .map((transfer, i) => renderTransfer(transfer, i, transaction));
     }
     return transaction.tokenTransfers?.map((transfer, i) =>
-      renderTransfer(transfer, i, transaction.type)
+      renderTransfer(transfer, i, transaction)
     );
   };
 
   return (
-    <div>
-      <h1>Helius Transactions</h1>
-      {loading ? (
-        <p>Loading transactions...</p>
-      ) : transactions && transactions.length > 0 ? (
-        <ul>
-          {transactions.map((transaction, index) => (
-            <li
-              key={index}
-              style={{ marginBottom: "20px" }}
-              className="bg-gray-700 p-5"
-            >
-              <h3>Transaction {index + 1}</h3>
-              {/* <h2>Description: {transaction.description}</h2> */}
-              <p>Type: {transaction.type}</p>
-              <p>Source: {transaction.source}</p>
-              <p>Destination: {transaction.destination}</p>
-              <p>Amount: {transaction.tokenAmount}</p>
+    <div className="min-h-screen bg-gray-900 p-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-2xl font-bold text-white mb-6">
+          Transaction History
+        </h1>
 
-              {transaction.tokenTransfers &&
-                transaction.tokenTransfers.length > 0 && (
-                  <div>
-                    <h4>Token Transfers:</h4>
-                    <ul>{renderTokenTransfers(transaction)}</ul>
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+          </div>
+        ) : transactions && transactions.length > 0 ? (
+          <div className="space-y-4">
+            {transactions.map((transaction, index) => (
+              <div
+                key={index}
+                className="bg-gray-800/50 rounded-lg shadow-lg overflow-hidden"
+              >
+                <div className="p-4 border-b border-gray-700">
+                  <div className="flex justify-between items-center">
+                    <div className="flex flex-col gap-3">
+                      <span className="w-fit px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm">
+                        {transaction.type}
+                      </span>
+                      <div className="flex gap-2">
+                        {transaction.source !== "UNKNOWN" && (
+                          <span className="text-xs text-white">
+                            {transaction.source === "SYSTEM_PROGRAM"
+                              ? "System Program"
+                              : transaction.source}
+                          </span>
+                        )}
+                        <div className="flex flex-row items-center">
+                          <span className="text-xs text-gray-400">
+                            {truncateAddress(transaction.signature)}
+                          </span>
+                          <button
+                            onClick={() =>
+                              handleCopySignature(transaction.signature)
+                            }
+                            className={`transition-colors ml-2 ${
+                              copiedSignature === transaction.signature
+                                ? "text-green-400"
+                                : "hover:text-gray-200"
+                            }`}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    {transaction.timestamp && (
+                      <span className="text-sm text-gray-400">
+                        {formatDate(transaction.timestamp)}
+                      </span>
+                    )}
                   </div>
-                )}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No transactions found.</p>
-      )}
+                </div>
+                <div className="p-4">
+                  {transaction.tokenTransfers &&
+                    transaction.tokenTransfers.length > 0 && (
+                      <div>{renderTokenTransfers(transaction)}</div>
+                    )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-400 py-12">
+            No transactions found
+          </div>
+        )}
+      </div>
     </div>
   );
 };
