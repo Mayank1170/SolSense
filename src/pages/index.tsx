@@ -113,7 +113,7 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
 
     const words = queryLower.split(" ");
 
-    let filters = {
+    const filters = {
       token: "",
       action: "",
       destination: "",
@@ -150,7 +150,7 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
 
       if (word === "to" && nextWord) {
         const possibleDestination = Object.entries(publicKeyMappings).find(
-          ([_, value]) => value.toLowerCase() === nextWord
+          ([value]) => value.toLowerCase() === nextWord
         );
         if (possibleDestination) {
           filters.destination = possibleDestination[0];
@@ -161,7 +161,7 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
 
       if (word === "from" && nextWord) {
         const possibleSource = Object.entries(publicKeyMappings).find(
-          ([_, value]) => value.toLowerCase() === nextWord
+          ([ value]) => value.toLowerCase() === nextWord
         );
         if (possibleSource) {
           filters.source = possibleSource[0];
@@ -171,7 +171,7 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
       }
 
       const mappedToken = Object.entries(publicKeyMappings).find(
-        ([key, value]) => value.toLowerCase() === word
+        ([ value]) => value.toLowerCase() === word
       );
 
       if (mappedToken) {
@@ -180,7 +180,7 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
       }
 
       const metadataToken = Object.entries(tokenMetadata).find(
-        ([_, value]) => value.name.toLowerCase() === word
+        ([_, value]) => {value.name.toLowerCase() === word || _}
       );
 
       if (metadataToken) {
@@ -191,7 +191,7 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
     return filters;
   };
 
-  const matchesSearchCriteria = (transaction: Transaction, filters: any) => {
+  const matchesSearchCriteria = (transaction: Transaction, filters: { token: any; action: any; destination: any; source: any; type: any; }) => {
     const { token, action, destination, source, type } = filters;
 
     if (!token && !action && !destination && !source && !type) {
@@ -238,7 +238,7 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
       }
 
       const filteredData = data.filter(
-        (transaction: { type: string; tokenTransfers: any[] }) => {
+        (transaction: { type: string; tokenTransfers: any[]}) => {
           if (FILTERED_TYPES.includes(transaction.type)) {
             return transaction.tokenTransfers?.some(
               (transfer) =>
@@ -342,7 +342,8 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
     const metadata = tokenMetadata[transfer.mint];
     const isSender = transfer.fromUserAccount === walletAddress;
     const isReceiver = transfer.toUserAccount === walletAddress;
-
+transaction
+isReceiver
     return (
       <div className="bg-gray-800 rounded-lg shadow-lg p-4 mb-4" key={i}>
         <div className="flex items-center justify-between mb-4">
