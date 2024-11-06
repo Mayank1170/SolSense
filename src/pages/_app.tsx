@@ -12,6 +12,7 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { useMemo } from "react";
 import { clusterApiUrl } from "@solana/web3.js";
+import { Analytics } from "@vercel/analytics/react"
 
 // Import default styles that come with @solana/wallet-adapter-react-ui
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -38,6 +39,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <Component {...pageProps} />
+          <Analytics/>
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
