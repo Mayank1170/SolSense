@@ -23,7 +23,6 @@ export const fetchAssetDetails = async (mint: string) => {
       }
   
       const data = await response.json();
-      console.log("Data", data.result.content);
       
       return data.result.content;
     } catch (error) {

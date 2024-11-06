@@ -1,9 +1,11 @@
 const HELIUS_API_KEY = process.env.NEXT_PUBLIC_HELIUS_API_KEY;
-const WALLET_ADDRESS = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
+// const WALLET_ADDRESS = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
 
-export const fetchTransactions = async (): Promise<any> => {
-  const url = `https://api.helius.xyz/v0/addresses/${WALLET_ADDRESS}/transactions?api-key=${HELIUS_API_KEY}`;
-
+export const fetchTransactions = async (beforeSignature?: string, walletAddress?: string): Promise<any> => {
+  const url = `https://api.helius.xyz/v0/addresses/${walletAddress}/transactions?api-key=${HELIUS_API_KEY}${
+    beforeSignature ? `&before=${beforeSignature}` : ''
+  }`;
+  
   try {
     const response = await fetch(url);
     if (!response.ok) {
