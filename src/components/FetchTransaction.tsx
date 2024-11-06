@@ -1,6 +1,6 @@
 const HELIUS_API_KEY = process.env.NEXT_PUBLIC_HELIUS_API_KEY;
 
-export const fetchTransactions = async (beforeSignature?: string, walletAddress?: string): Promise<any> => {
+export const fetchTransactions = async (beforeSignature?: string, walletAddress?: string) => {
   const url = `https://api.helius.xyz/v0/addresses/${walletAddress}/transactions?api-key=${HELIUS_API_KEY}${
     beforeSignature ? `&before=${beforeSignature}` : ''
   }`;

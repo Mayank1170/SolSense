@@ -191,8 +191,7 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
     return filters;
   };
 
-  const matchesSearchCriteria = (transaction: Transaction, filters: { token: any; action: any; destination: any; source: any; type: any; }) => {
-    const { token, action, destination, source, type } = filters;
+  const matchesSearchCriteria = (transaction: Transaction, filters: { token: any; action: any; destination: any; source: any; type: any; }) => {    const { token, action, destination, source, type } = filters;
 
     if (!token && !action && !destination && !source && !type) {
       return true;
