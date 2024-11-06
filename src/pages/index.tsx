@@ -12,6 +12,13 @@ interface TokenTransfer {
   fromUserAccount?: string;
   toUserAccount?: string;
 }
+interface FilterCriteria {
+  token: string;         // Update with the correct type
+  action: string;        // Update with the correct type
+  destination: string;   // Update with the correct type
+  source: string;        // Update with the correct type
+  type: string;          // Update with the correct type
+}
 
 interface Transaction {
   description: string;
@@ -55,10 +62,12 @@ const WalletInput = ({ onSubmit }: { onSubmit: (address: string) => void }) => {
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-white mb-8 text-center">
-          Solana Wallet Transaction Tracker
-        </h1>
-        
+      <h1
+  className="text-[70px] font-bold mb-8 text-center bg-gradient-to-r from-blue-300 via-blue-400 to-blue-500 bg-clip-text text-transparent"
+>
+  SolSence
+</h1>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
@@ -191,7 +200,8 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
     return filters;
   };
 
-  const matchesSearchCriteria = (transaction: Transaction, filters: { token: any; action: any; destination: any; source: any; type: any; }) => {    const { token, action, destination, source, type } = filters;
+  const matchesSearchCriteria = (transaction: Transaction, filters: FilterCriteria) => {
+    const { token, action, destination, source, type } = filters;
 
     if (!token && !action && !destination && !source && !type) {
       return true;
@@ -237,7 +247,7 @@ const TransactionHistory = ({ walletAddress }: { walletAddress: string }) => {
       }
 
       const filteredData = data.filter(
-        (transaction: { type: string; tokenTransfers: any[]}) => {
+        (transaction: { type: string; tokenTransfers: TokenTransfer[]}) => {
           if (FILTERED_TYPES.includes(transaction.type)) {
             return transaction.tokenTransfers?.some(
               (transfer) =>
