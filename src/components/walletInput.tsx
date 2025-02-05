@@ -1,64 +1,53 @@
-import React, { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useState } from "react";
 
-const WalletInput = () => {
+
+const WalletInput = ({ onSubmit }: { onSubmit: (address: string) => void }) => {
   const [walletAddress, setWalletAddress] = useState('');
   const [error, setError] = useState('');
-  const router = useRouter();
-
-  const validateSolanaAddress = (address: string) => {
-    // Basic Solana address validation (44 characters, base58)
-    return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!walletAddress) {
+    
+    if (!walletAddress.trim()) {
       setError('Please enter a wallet address');
       return;
     }
-
-    if (!validateSolanaAddress(walletAddress)) {
+    
+    if (walletAddress.length !== 44) {
       setError('Please enter a valid Solana wallet address');
       return;
     }
 
-    // Navigate to transactions page with wallet address
-    router.push(`/transactions/${walletAddress}`);
+    setError('');
+    onSubmit(walletAddress);
   };
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Transaction Explorer
-          </h1>
-          <p className="text-gray-400">
-            Enter a Solana wallet address to view its transaction history
-          </p>
-        </div>
+      <div className="w-full max-w-md">
+      <h1
+  className="text-[70px] font-bold mb-8 text-center bg-gradient-to-r from-blue-300 via-blue-400 to-blue-500 bg-clip-text text-transparent"
+>
+  SolSence
+</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
               type="text"
               value={walletAddress}
-              onChange={(e) => {
-                setWalletAddress(e.target.value);
-                setError('');
-              }}
-              placeholder="Enter wallet address"
-              className="w-full p-4 rounded-lg bg-gray-800 text-gray-300 placeholder-gray-500 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              onChange={(e) => setWalletAddress(e.target.value)}
+              placeholder="Enter Solana wallet address"
+              className="w-full p-4 rounded-lg bg-gray-800 text-gray-300 placeholder-gray-500 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             />
             {error && (
-              <p className="mt-2 text-sm text-red-500">{error}</p>
+              <p className="mt-2 text-red-500 text-sm">{error}</p>
             )}
           </div>
-
+          
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors"
+            className="w-full py-4 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors duration-200"
           >
             View Transactions
           </button>
@@ -68,4 +57,6 @@ const WalletInput = () => {
   );
 };
 
-export default WalletInput;
+
+
+export default WalletInput
